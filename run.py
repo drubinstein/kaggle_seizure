@@ -113,19 +113,13 @@ def main():
             print "Testing"
             folder = '{0}test_{1}/'.format(dataPath, dc)
             for filename in os.listdir(folder):
-                try:
-                    data = sio.loadmat('{0}{1}'.format(folder, filename))
-                    metadata = re.split(r'[_.]+',filename)
-                    y = [[1,-1]] if prepost == 0 else [[-1,1]]
-                    x = np.reshape(data['dataStruct']['data'][0][0],(1,n_samps))
-                    p = sess.run(pred, feed_dict={X: x})
-                    sess.run(optimizer, feed_dict={X: x, Y: y})
-                    p = 0 if p < 0 else 1
-                except ValueError:
-                    print '{0} is an invalid file skipping...'.format(filename)
-                    p = randint(0,1)
+                data = sio.loadmat('{0}{1}'.format(folder, filename))
+                metadata = re.split(r'[_.]+',filename)
+                x = np.reshape(data['dataStruct']['data'][0][0],(1,n_samps))
+                p = sess.run(pred, feed_dict={X: x})
+                p = 0 if p[0][0] > p[0][1] else 1
 
-                submission.write("{0},{1}".format(filename, p))
+                submission.write("{0},{1}\n".format(filename, p))
 
     submission.close()
 
