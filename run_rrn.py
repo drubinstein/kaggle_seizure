@@ -19,9 +19,10 @@ import tensorflow as tf
 printing = False
 
 # Network Parameters
-n_samps = 240000*16
+n_channels = 16
+n_samps = 240000*n_channels
 samps_per_step = 240
-n_input = samps_per_step*16 # MNIST data input (img shape: 16 channels, 240 samples per channel)
+n_input = samps_per_step*n_channels # MNIST data input (img shape: 16 channels, 240 samples per channel)
 n_steps = n_samps/n_input # timesteps
 n_hidden = 128 # hidden layer num of features
 n_classes = 1 # Total # classes (pre and postictal)
@@ -67,7 +68,7 @@ def main():
     dropout = .75
 
     # tf Graph input
-    x = tf.placeholder("float", [None, n_steps, n_input])
+    x = tf.placeholder("float", [None, 1, n_input])
     y = tf.placeholder("float", [None, n_classes])
 
     # Define weights
@@ -110,10 +111,9 @@ def main():
                 prepost = int(metadata[2]) # the class is the 3rd number
                 #now perform the batch processing
                 for step in xrange(0,n_steps):
-                    batch_x = data['dataStruct']['data'][0][0][:][step*samps_per_step:step*(samps_per_step+1)-1]
-                    print batch_x.shape
+                    batch_x = data['dataStruct']['data'][0][0][(step*samps_per_step):((step+1)*samps_per_step)]
                     batch_x = np.reshape(batch_x, (1,n_input))
-                    sess.run(optimizer, feed_dict={x: batch_x, y: prepost})
+                    sess.run(optimizer, feed_dict={x: [batch_x], y: prepost})
 
             print "Testing"
             folder = '{0}test_{1}/'.format(dataPath, dc)
@@ -122,9 +122,9 @@ def main():
                 metadata = re.split(r'[_.]+',filename)
                 p = 0
                 for step in xrange(0,n_steps):
-                    batch_x = data['dataStruct']['data'][0][0][:][step*samps_per_step:step*(samps_per_step+1)-1]
+                    batch_x = data['dataStruct']['data'][0][0][(step*samps_per_step):((step+1)*samps_per_step)]
                     batch_x = np.reshape(batch_x, (1,n_input))
-                    p += sess.run(pred, feed_dict={x: batch_x})
+                    p += sess.run(pred, feed_dict={x: [batch_x]})
 
                 #now average p to figure out where it belongs
                 p = 0 if p/n_steps < .5 else 1
