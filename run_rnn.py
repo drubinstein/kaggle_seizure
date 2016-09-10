@@ -10,8 +10,7 @@
 
 import numpy as np
 import scipy.io as sio
-import re
-import os
+import re, os, sys
 from random import randint
 
 import tensorflow as tf
