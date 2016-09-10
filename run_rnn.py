@@ -25,7 +25,7 @@ display_step = 10
 # Network Parameters
 n_channels = 16
 n_samps = 240000*n_channels
-ch_samps_per_step = 240 #240 samples from one channel per step
+ch_samps_per_step = 120 #240 samples from one channel per step
 samps_per_step = ch_samps_per_step*n_channels
 n_input = samps_per_step
 n_steps = n_samps/n_input # timesteps
@@ -47,7 +47,7 @@ def RNN(x, weights, biases):
     x = tf.split(0, n_steps, x)
 
     # Define a lstm cell with tensorflow
-    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden, forget_bias=1.0)
+    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden, forget_bias=1.0, state_is_tuple=True)
 
     # Get lstm cell output
     outputs, states = tf.nn.rnn(lstm_cell, x, dtype=tf.float32)
@@ -97,13 +97,16 @@ def main():
     submission = open("submission.csv", "w")
     submission.write("File,Class\n")
 
+    #disable gpu
+    config = tf.ConfigProto(device_count = {'GPU' : 0})
+
 
     #4 because range only goes from n to m-1
     for dc in xrange(1,4):
         print "Running dataset: {0}".format(dc)
         init = tf.initialize_all_variables()
 
-        with tf.Session() as sess:
+        with tf.Session(config = config) as sess:
             sess.run(init)
 
             print "Training"
@@ -121,7 +124,7 @@ def main():
                 #Reshape the data to get n_steps sequences of samps_per_step elements
 
                 batch_x = np.empty([n_steps, samps_per_step])
-                batch_y = [1,0] if prepost == 0 else [0,1]
+                batch_y = [1.,0.] if prepost == 0 else [0.,1.]
                 for s in xrange(n_steps):
                     batch_x[s] = np.reshape( \
                         data['dataStruct']['data'][0][0][ch_samps_per_step*s:ch_samps_per_step*(s+1)][:] \
@@ -134,7 +137,7 @@ def main():
                     acc = sess.run(accuracy, feed_dict={x: [batch_x], y: [batch_y]})
                     #Calculate batch loss
                     loss = sess.run(cost, feed_dict={x: [batch_x], y: [batch_y]})
-                    print("Iter " + str(fidx) + ", Minibatch Loss= " + \
+                    print("\nIter " + str(fidx) + ", Minibatch Loss= " + \
                                       "{:.6f}".format(loss) + ", Training Accuracy= " + \
                                                         "{:.5f}".format(acc))
 
