@@ -128,11 +128,11 @@ def main():
                         data['dataStruct']['data'][0][0][ch_samps_per_step*s:ch_samps_per_step*(s+1)][:] \
                         , (1,samps_per_step) \
                         , order = 'F') #because this was originally matlab data....
-                sess.run(optimizer, feed_dict={x: [batch_x], y: [prepost]})
+                sess.run(optimizer, feed_dict={x: [batch_x], y: [batch_y]})
 
                 if fidx % display_step == 0:
                     #Calculate batch accuracy
-                    acc = sess.run(accuracy, feed_dict={x: batch_x, y: batch_y})
+                    acc = sess.run(accuracy, feed_dict={x: [batch_x], y: [batch_y]})
                     #Calculate batch loss
                     loss = sess.run(cost, feed_dict={x: batch_x, y: batch_y})
                     print("Iter " + str(step*batch_size) + ", Minibatch Loss= " + \
