@@ -134,8 +134,8 @@ def main():
                     #Calculate batch accuracy
                     acc = sess.run(accuracy, feed_dict={x: [batch_x], y: [batch_y]})
                     #Calculate batch loss
-                    loss = sess.run(cost, feed_dict={x: batch_x, y: batch_y})
-                    print("Iter " + str(step*batch_size) + ", Minibatch Loss= " + \
+                    loss = sess.run(cost, feed_dict={x: [batch_x], y: [batch_y]})
+                    print("Iter " + str(fidx) + ", Minibatch Loss= " + \
                                       "{:.6f}".format(loss) + ", Training Accuracy= " + \
                                                         "{:.5f}".format(acc))
 
