@@ -122,7 +122,7 @@ def main():
                 #Reshape the data to get n_steps sequences of samps_per_step elements
 
                 batch_x = np.empty([n_steps, samps_per_step])
-                batch_y = [1,0] if preopost == 0 else [0,1]
+                batch_y = [1,0] if prepost == 0 else [0,1]
                 for s in xrange(n_steps):
                     batch_x[s] = np.reshape( \
                         data['dataStruct']['data'][0][0][ch_samps_per_step*s:ch_samps_per_step*(s+1)][:] \
@@ -152,7 +152,6 @@ def main():
                 data = sio.loadmat('{0}{1}'.format(folder, filename))
                 metadata = re.split(r'[_.]+',filename)
                 batch_x = np.empty([n_steps, samps_per_step])
-                batch_y = [1,0] if preopost == 0 else [0,1]
                 for s in xrange(n_steps):
                     batch_x[s] = np.reshape( \
                         data['dataStruct']['data'][0][0][ch_samps_per_step*s:ch_samps_per_step*(s+1)][:] \
