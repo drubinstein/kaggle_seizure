@@ -20,12 +20,12 @@ printing = False
 #Parameters
 learning_rate = .001
 batch_size = 128
-display_step = 10
+display_step = 50
 
 # Network Parameters
 n_channels = 16
 n_samps = 240000*n_channels
-ch_samps_per_step = 120 #240 samples from one channel per step
+ch_samps_per_step = 240 #240 samples from one channel per step
 samps_per_step = ch_samps_per_step*n_channels
 n_input = samps_per_step
 n_steps = n_samps/n_input # timesteps
@@ -48,6 +48,7 @@ def RNN(x, weights, biases):
 
     # Define a lstm cell with tensorflow
     lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden, forget_bias=1.0, state_is_tuple=True)
+    #lstm_cell = tf.nn.rnn_cell.GRUCell(n_hidden)
 
     # Get lstm cell output
     outputs, states = tf.nn.rnn(lstm_cell, x, dtype=tf.float32)
@@ -56,6 +57,7 @@ def RNN(x, weights, biases):
     return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
 def main():
+
     dataPath = '/media/david/linux_media/kaggle/eeg/'
     """
     data = sio.loadmat(dataPath + 'train_1/1_1000_0.mat')
@@ -86,7 +88,7 @@ def main():
 
     # Define loss and optimizer
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost,aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE)
     if printing: cost = tf.Print(cost,[cost],'Cost: ')
 
     # Evaluate model
@@ -98,15 +100,15 @@ def main():
     submission.write("File,Class\n")
 
     #disable gpu
-    config = tf.ConfigProto(device_count = {'GPU' : 0})
-
+    #config = tf.ConfigProto(device_count = {'GPU' : 0})
 
     #4 because range only goes from n to m-1
     for dc in xrange(1,4):
         print "Running dataset: {0}".format(dc)
         init = tf.initialize_all_variables()
 
-        with tf.Session(config = config) as sess:
+        with tf.Session() as sess:
+        #with tf.Session(config = config) as sess:
             sess.run(init)
 
             print "Training"
@@ -116,6 +118,7 @@ def main():
 
             for filename in os.listdir(folder):
                 if filename=='1_45_1.mat':
+                    fidx+=1
                     continue
                 data = sio.loadmat('{0}{1}'.format(folder, filename))
                 metadata = re.split(r'[_.]+',filename)
