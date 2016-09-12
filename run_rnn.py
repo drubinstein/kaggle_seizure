@@ -56,6 +56,26 @@ def RNN(x, weights, biases):
     # Linear activation, using rnn inner loop last output
     return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
+def BiRNN(x, weights, biases):
+
+    # Prepare data shape to match `rnn` function requirements
+    # Current data input shape: (batch_size, n_steps, n_input)
+    # Required shape: 'n_steps' tensors list of shape (batch_size, n_input)
+
+    # Permuting batch_size and n_steps
+    x = tf.transpose(x, [1, 0, 2])
+    # Reshaping to (n_steps*batch_size, n_input)
+    x = tf.reshape(x, [-1, n_input])
+    # Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
+    x = tf.split(0, n_steps, x)
+
+    fwd_cell = tf.nn.rnn_cell.GRUCell(n_hidden)
+    bwd_cell = tf.nn.rnn_cell.GRUCell(n_hidden)
+    outputs, _, _ = tf.nn.bidirectional_rnn(fwd_cell, bwd_cell, x, dtype=tf.float32)
+
+    # Linear activation, using rnn inner loop last output
+    return tf.matmul(outputs[-1], weights['out']) + biases['out']
+
 def main():
 
     dataPath = '/media/david/linux_media/kaggle/eeg/'
@@ -77,14 +97,15 @@ def main():
 
     # Define weights
     weights = {
-        'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+        #'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+        'out': tf.Variable(tf.random_normal([2*n_hidden, n_classes]))
     }
     biases = {
         'out': tf.Variable(tf.random_normal([n_classes]))
     }
 
     #create multilayer perceptron
-    pred = RNN(x, weights, biases)
+    pred = BiRNN(x, weights, biases)
 
     # Define loss and optimizer
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
@@ -140,10 +161,6 @@ def main():
                     acc = sess.run(accuracy, feed_dict={x: [batch_x], y: [batch_y]})
                     #Calculate batch loss
                     loss = sess.run(cost, feed_dict={x: [batch_x], y: [batch_y]})
-                    print("\nIter " + str(fidx) + ", Minibatch Loss= " + \
-                                      "{:.6f}".format(loss) + ", Training Accuracy= " + \
-                                                        "{:.5f}".format(acc))
-
                 fidx+=1
                 sys.stdout.write("\r{0}/{1}".format(fidx, num_files))
                 sys.stdout.flush()
@@ -164,7 +181,7 @@ def main():
                         , order = 'F') #because this was originally matlab data....
                 p = sess.run(pred, feed_dict={x: [batch_x]})
 
-                submission.write("{0},{1}\n".format(filename, 0 if p[0] > p[1] else 1))
+                submission.write("{0},{1}\n".format(filename, 0 if p[0][0] > p[0][1] else 1))
                 fidx+=1
                 sys.stdout.write("\r{0}/{1}".format(fidx, num_files))
                 sys.stdout.flush()
