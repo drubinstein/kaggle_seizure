@@ -62,9 +62,6 @@ class RnnModel(metaclass=ABCMeta):
 
 class BiRNN(RnnModel):
 
-    def __init__(self, learning_rate, batch_size, n_out, n_channels, samps_per_step):
-        super(BiRNN, self)
-
     def gen_model(self,x, weights, biases):
         x = tf.transpose(x, [1, 0, 2])
         # Reshaping to (n_steps*batch_size, n_input)
@@ -101,9 +98,6 @@ class BiRNN(RnnModel):
 
 
 class RNN(RnnModel):
-
-    def __init__(self, learning_rate, batch_size, n_out, n_channels, samps_per_step):
-        super(BiRNN, self)
 
     def gen_model(self,x, weights, biases):
         x = tf.transpose(x, [1, 0, 2])
